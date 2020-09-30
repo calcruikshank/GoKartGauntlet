@@ -300,12 +300,17 @@ Transform:
   m_LocalPosition: {x: 0, y: 7, z: -12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 1140300627}
-  m_RootOrder: 1
+  m_Father: {fileID: 1901733511}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 13.367, y: 0, z: 0}
 --- !u!1 &1042749634 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 176394, guid: 0b74f2e12ea52ed4f882cf9069a8e94f, type: 3}
+  m_PrefabInstance: {fileID: 1876140056}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1042749635 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 478518, guid: 0b74f2e12ea52ed4f882cf9069a8e94f, type: 3}
   m_PrefabInstance: {fileID: 1876140056}
   m_PrefabAsset: {fileID: 0}
 --- !u!136 &1042749637
@@ -316,7 +321,7 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1042749634}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   m_Radius: 0.33334208
   m_Height: 0.7
@@ -352,7 +357,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 931935333}
-  - {fileID: 963194228}
+  - {fileID: 1901733511}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -367,7 +372,7 @@ CharacterController:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Height: 2
+  m_Height: 1.57
   m_Radius: 0.29
   m_SlopeLimit: 90
   m_StepOffset: 0.7
@@ -389,27 +394,45 @@ MonoBehaviour:
   state: 0
   kart: {fileID: 1140300628}
   kartBody: {fileID: 1140300627}
+  kartBodyTransform: {fileID: 931935333}
   frontLeftWheel: {fileID: 1207236514}
   frontRightWheel: {fileID: 1591337365}
   backLeftWheel: {fileID: 1042749637}
   backRightWheel: {fileID: 1478181503}
+  frontLeftWheelTransform: {fileID: 1207236512}
+  frontRightWheelTransform: {fileID: 1591337363}
+  backLeftWheelTransform: {fileID: 1042749635}
+  backRightWheelTransform: {fileID: 1478181504}
+  frontLeftWheelTransformOnStart: {fileID: 0}
   topSpeed: 60
   turnSpeedMultiplier: 0.5
   currentSpeed: 0
   acceleration: 0.5
   deceleration: 0.4
   neutralDeceleration: 0.2
+  x: 0
+  z: 0
   groundCheck: {fileID: 0}
-  groundDistance: 1
+  groundDistance: 0.4
   groundMask:
     serializedVersion: 2
     m_Bits: 256
   forwardDirectionOnJump: {x: 0, y: 0, z: 0}
-  jumpHeight: 3
+  forwardDirectionOnDrift: {x: 0, y: 0, z: 0}
+  jumpHeight: 0.6
   gravity: -50
+  beganDrifting: 0
+  directionOfKartOnImpact: 0
+  pressingJump: 0
+  justJumped: 0
 --- !u!1 &1207236511 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 133806, guid: 0b74f2e12ea52ed4f882cf9069a8e94f, type: 3}
+  m_PrefabInstance: {fileID: 1876140056}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1207236512 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 443176, guid: 0b74f2e12ea52ed4f882cf9069a8e94f, type: 3}
   m_PrefabInstance: {fileID: 1876140056}
   m_PrefabAsset: {fileID: 0}
 --- !u!136 &1207236514
@@ -420,7 +443,7 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1207236511}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   m_Radius: 0.33334208
   m_Height: 0.7
@@ -439,15 +462,25 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1478181500}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   m_Radius: 0.3333423
   m_Height: 0.7
   m_Direction: 1
   m_Center: {x: 0.15220183, y: 0, z: -0.000005543232}
+--- !u!4 &1478181504 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 462596, guid: 0b74f2e12ea52ed4f882cf9069a8e94f, type: 3}
+  m_PrefabInstance: {fileID: 1876140056}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1591337362 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 115910, guid: 0b74f2e12ea52ed4f882cf9069a8e94f, type: 3}
+  m_PrefabInstance: {fileID: 1876140056}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1591337363 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 485636, guid: 0b74f2e12ea52ed4f882cf9069a8e94f, type: 3}
   m_PrefabInstance: {fileID: 1876140056}
   m_PrefabAsset: {fileID: 0}
 --- !u!136 &1591337365
@@ -458,7 +491,7 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1591337362}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   m_Radius: 0.33334208
   m_Height: 0.7
@@ -656,5 +689,57 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 443176, guid: 0b74f2e12ea52ed4f882cf9069a8e94f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0b74f2e12ea52ed4f882cf9069a8e94f, type: 3}
+--- !u!1 &1901733510
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1901733511}
+  - component: {fileID: 1901733512}
+  m_Layer: 0
+  m_Name: CameraFolow
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1901733511
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1901733510}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 963194228}
+  m_Father: {fileID: 1140300627}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1901733512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1901733510}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f1610103e55968488dd666e1db1ec26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kart: {fileID: 1140300626}
+  carX: 0
+  carY: 0
+  carZ: 0
