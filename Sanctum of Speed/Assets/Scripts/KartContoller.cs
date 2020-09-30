@@ -52,6 +52,7 @@ public class KartContoller : MonoBehaviour
 
     float yRotation;
     float kartClampWhenDrifting;
+    float xWhenJumping;
 
     // Start is called before the first frame update
     void Start()
@@ -102,9 +103,27 @@ public class KartContoller : MonoBehaviour
         frontLeftWheelTransform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
         frontRightWheelTransform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
 
-        if (currentSpeed > 60)
+        if (currentSpeed > topSpeed)
         {
-            currentSpeed = 60;
+            currentSpeed = topSpeed;
+        }
+
+        
+        if (Input.GetKeyUp("joystick button 0"))
+        {
+            z = 0;
+        }
+        if (Input.GetKey("joystick button 1"))
+        {
+            z = -1;
+        }
+        if (Input.GetKey("joystick button 0"))
+        {
+            z = 1;
+        }
+        if (Input.GetKeyUp("joystick button 1"))
+        {
+            z = 0;
         }
 
     }
@@ -119,7 +138,9 @@ public class KartContoller : MonoBehaviour
             velocity.y = -2f;
         }
 
-        z = Input.GetAxis("Vertical");
+        
+
+        //z = Input.GetAxis("Vertical");
 
         Vector3 forwardDirection = transform.forward; //I dont multiply by x because I use speed to determine how fast i should move
         Vector3 rightDirection = transform.right * z;
@@ -155,7 +176,7 @@ public class KartContoller : MonoBehaviour
         {
             if (currentSpeed > 0)
             {
-                turnSpeedMultiplier = 60 / (currentSpeed + 300);
+                turnSpeedMultiplier = 60 / (currentSpeed + 500);
                 kartBody.Rotate(Vector3.up * x * turnSpeedMultiplier);
             }
             if (currentSpeed < 0)
@@ -168,8 +189,9 @@ public class KartContoller : MonoBehaviour
 
         }
 
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        if (Input.GetAxis("Jump") != 0 && isGrounded && currentSpeed > 30)
         {
+            xWhenJumping = Input.GetAxisRaw("Horizontal");
             forwardDirectionOnJump = transform.forward;
             pressingJump = true;
             justJumped = false;
@@ -197,18 +219,44 @@ public class KartContoller : MonoBehaviour
 
     public void HandleDrifting()
     {
+        if (z == 0)
+        {
+            currentSpeed -= neutralDeceleration;
+        }
+        if (z == 1)
+        {
+            currentSpeed += acceleration;
+        }
+        if (z == -1)
+        {
+            currentSpeed -= deceleration;
+        }
+        if (currentSpeed < 10)
+        {
+            state = DrivingStates.GROUNDEDDRIVING;
+        }
+
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
         }
 
-
-        x = Mathf.Clamp(x, .2f, 1);
-        turnSpeedMultiplier = 60 / (currentSpeed + 150);
-        kartClampWhenDrifting = x;
+        if (xWhenJumping > 0)
+        {
+            x = Mathf.Clamp(x, .2f, 1);
+            kartClampWhenDrifting = Mathf.Clamp(kartClampWhenDrifting, 30, 35);
+        }
+        if (xWhenJumping < 0)
+        {
+            x = Mathf.Clamp(x, -1f, -.2f);
+            kartClampWhenDrifting = Mathf.Clamp(kartClampWhenDrifting, -35, -30);
+        }
         
-        kartClampWhenDrifting = Mathf.Clamp(kartClampWhenDrifting, 30, 35);
+        turnSpeedMultiplier = 60 / (currentSpeed + 250);
+        
+        
+        
 
         kartBody.Rotate(Vector3.up * x * turnSpeedMultiplier);
         kartBodyTransform.localRotation = Quaternion.Euler(0f, kartClampWhenDrifting, 0f);
@@ -219,6 +267,11 @@ public class KartContoller : MonoBehaviour
 
         velocity.y += gravity * Time.deltaTime; //gravity move on y axis
         kart.Move(velocity * Time.deltaTime); //timedeltatime^2 thats why its twice
+
+        if (Input.GetAxisRaw("Jump") == 0)
+        {
+            state = DrivingStates.GROUNDEDDRIVING;
+        }
     }
 
     public void HandleAirMovement()
@@ -236,13 +289,6 @@ public class KartContoller : MonoBehaviour
         velocity.y += gravity * Time.deltaTime; //gravity move on y axis
         kart.Move(velocity * Time.deltaTime); //timedeltatime^2 thats why its twice
 
-        if (Input.GetButtonDown("Jump") && z != 0)
-        {
-            pressingJump = true;
-            justJumped = false;
-            kartClampWhenDrifting = 0;
-            state = DrivingStates.BEGINDRIFTING;
-        }
 
 
     }
@@ -251,7 +297,7 @@ public class KartContoller : MonoBehaviour
     {
 
         x = Input.GetAxisRaw("Horizontal");
-
+        
         kartBodyTransform.localRotation = Quaternion.Euler(0f, 0f, 0f);
 
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
@@ -262,14 +308,15 @@ public class KartContoller : MonoBehaviour
 
 
 
-        if (isGrounded && pressingJump == true)
+        if (isGrounded && pressingJump == true && justJumped == false)
         {
             
             velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
+            xWhenJumping = Input.GetAxisRaw("Horizontal");
 
         }
 
-        if (Input.GetButtonUp("Jump"))
+        if (Input.GetAxisRaw("Jump") == 0)
         {
             pressingJump = false;
         }
@@ -280,7 +327,7 @@ public class KartContoller : MonoBehaviour
             justJumped = true;
         }
 
-        if (justJumped && isGrounded && pressingJump && x != 0)
+        if (justJumped && isGrounded && pressingJump && xWhenJumping != 0 && currentSpeed > 30)
         {
             
             state = DrivingStates.DRIFTING;
@@ -288,21 +335,24 @@ public class KartContoller : MonoBehaviour
 
         if (pressingJump == false && isGrounded)
         {
-            
             state = DrivingStates.GROUNDEDDRIVING;
         }
-        
-        kart.Move(forwardDirectionOnJump * currentSpeed * Time.deltaTime);
+
+        if (isGrounded && pressingJump == true && justJumped == true && xWhenJumping == 0)
+        {
+            state = DrivingStates.GROUNDEDDRIVING;
+        }
+
+        kart.Move(forwardDirectionOnJump.normalized * currentSpeed * Time.deltaTime);
         velocity.y += gravity * Time.deltaTime; //gravity move on y axis
         kart.Move(velocity * Time.deltaTime); //timedeltatime^2 thats why its twice
 
        
-        kartClampWhenDrifting += x;
+        kartClampWhenDrifting += xWhenJumping / 2;
         kartClampWhenDrifting = Mathf.Clamp(kartClampWhenDrifting, -35, 35);
 
         kartBodyTransform.localRotation = Quaternion.Euler(0f, kartClampWhenDrifting, 0f);
         
-        kart.Move(transform.forward.normalized * currentSpeed * Time.deltaTime);
     }
 
 }
