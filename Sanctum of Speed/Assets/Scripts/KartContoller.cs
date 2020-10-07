@@ -57,6 +57,8 @@ public class KartContoller : MonoBehaviour
     float xWhenLanding;
     public GameObject backLeftSparks;
     public GameObject backRightSparks;
+    public GameObject leftBooster;
+    public GameObject rightBooster;
 
     public LayerMask mask;
     public Vector3 newUp;
@@ -89,6 +91,8 @@ public class KartContoller : MonoBehaviour
     public float greatestAngleX;
 
     public float rotationOnTransformMismatch;
+
+    public int boostStage = 0;
     // Start is called before the first frame update
     void Start()
     {
@@ -144,7 +148,7 @@ public class KartContoller : MonoBehaviour
 
         x = Input.GetAxis("Horizontal");
 
-        yRotation = Mathf.Clamp(yRotation, -25f, 25f);
+        yRotation = Mathf.Clamp(yRotation, -30f, 30f);
         frontLeftWheelTransform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
         frontRightWheelTransform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
 
@@ -184,6 +188,11 @@ public class KartContoller : MonoBehaviour
         kartBaseY = kart.transform.up.y;
         kartBaseZ = kart.transform.up.z;
 
+        if (timeBoostingTimer >= timeBoosting)
+        {
+            leftBooster.SetActive(false);
+            rightBooster.SetActive(false);
+        }
     }
 
 
@@ -254,12 +263,12 @@ public class KartContoller : MonoBehaviour
         {
             if (currentSpeed > 0)
             {
-                turnSpeedMultiplier = 60 / (currentSpeed + 500);
+                turnSpeedMultiplier = 60 / (currentSpeed + 200);
                 kartBody.Rotate(Vector3.up * x * turnSpeedMultiplier);
             }
             if (currentSpeed < 0)
             {
-                turnSpeedMultiplier = 60 / (currentSpeed - 300);
+                turnSpeedMultiplier = 60 / (currentSpeed - 100);
                 kartBody.Rotate(Vector3.up * x * turnSpeedMultiplier);
 
             }
@@ -303,6 +312,7 @@ public class KartContoller : MonoBehaviour
         {
             topSpeed -= 20 * Time.deltaTime;
         }
+
         backLeftSparks.SetActive(true);
         backRightSparks.SetActive(true);
 
@@ -348,7 +358,7 @@ public class KartContoller : MonoBehaviour
             state = DrivingStates.GROUNDEDDRIVING;
         }
 
-        turnSpeedMultiplier = 60 / (currentSpeed + 300);
+        turnSpeedMultiplier = 60 / (currentSpeed + 100);
 
         xWhenLanding += x / 2;
         //Debug.Log(xWhenLanding);
@@ -392,7 +402,12 @@ public class KartContoller : MonoBehaviour
             timeBoostingTimer = 0;
 
             //velocity.y = Mathf.Sqrt(jumpHeight * -1 * gravity);
-
+            if (boostStage >= 1)
+            {
+                leftBooster.SetActive(true);
+                rightBooster.SetActive(true);
+            }
+            
             state = DrivingStates.GROUNDEDDRIVING;
         }
 
@@ -407,7 +422,7 @@ public class KartContoller : MonoBehaviour
             {
                 timeBoosting = .75f;
             }
-
+            boostStage = 1;
         }
         if (timerT >= 2)
         {
@@ -416,6 +431,8 @@ public class KartContoller : MonoBehaviour
             backLeftSparks.GetComponent<ParticleSystem>().startSpeed = 9;
             backRightSparks.GetComponent<ParticleSystem>().startSpeed = 9;
             boostAmount = 15f;
+
+            boostStage = 2;
             if (timeBoosting - timeBoostingTimer < 1.75f)
             {
                 timeBoosting = 1.75f;
@@ -429,10 +446,12 @@ public class KartContoller : MonoBehaviour
             backLeftSparks.GetComponent<ParticleSystem>().startColor = new Color(183 / 255f, 38f / 255f, 193f / 255f);
             backRightSparks.GetComponent<ParticleSystem>().startColor = new Color(183 / 255f, 38f / 255f, 193f / 255f);
 
+            boostStage = 3;
             boostAmount = 20f;
             if (timeBoosting - timeBoostingTimer < 2.75f)
             {
                 timeBoosting = 2.75f;
+               
             }
 
         }
@@ -448,6 +467,7 @@ public class KartContoller : MonoBehaviour
         if (timerT < 1)
         {
             boostAmount = 0f;
+            boostStage = 0;
         }
 
     }
@@ -479,17 +499,21 @@ public class KartContoller : MonoBehaviour
             kartBodyTransform.localRotation = Quaternion.Euler(0f, kartClampWhenDrifting, 0f);
         }
 
-
-        if (isGrounded && Input.GetAxis("Jump") != 0 && Mathf.Abs(kartClampWhenDrifting) > 0 && currentSpeed > 30 && didPressDrift == false)
+        if (Input.GetAxis("Jump") == 0)
+        {
+            RotateBodyBack();
+        }
+        if (isGrounded && Input.GetAxis("Jump") != 0 && Mathf.Abs(kartClampWhenDrifting) > 0 && currentSpeed > 30 && kartBodyTransform.localRotation.y != 0)
         {
 
             state = DrivingStates.DRIFTING;
 
         }
 
+        
         if (isGrounded && Input.GetAxis("Jump") == 0 || didPressDrift == true && isGrounded)
         {
-            kartBody.Rotate(Vector3.up.x, kartClampWhenDrifting, Vector3.up.z);
+            //kartBody.Rotate(Vector3.up.x, kartClampWhenDrifting, Vector3.up.z);
             state = DrivingStates.GROUNDEDDRIVING;
         }
 
@@ -608,10 +632,10 @@ public class KartContoller : MonoBehaviour
 
 
 
-        Physics.Raycast(frontRightTransform.position, -transform.up, out hit2, 100f, mask);
-        Physics.Raycast(rearLeftTransform.position, -transform.up, out hit3, 100f, mask);
-        Physics.Raycast(rearRightTransform.position, -transform.up, out hit4, 100f, mask);
-        Physics.Raycast(frontLeftTransform.position, -transform.up, out hit, 100f, mask);
+        Physics.Raycast(frontRightTransform.position, -transform.up, out hit2, .1f, mask);
+        Physics.Raycast(rearLeftTransform.position, -transform.up, out hit3, .100f, mask);
+        Physics.Raycast(rearRightTransform.position, -transform.up, out hit4, .100f, mask);
+        Physics.Raycast(frontLeftTransform.position, -transform.up, out hit, .100f, mask);
 
 
 
@@ -706,16 +730,20 @@ public class KartContoller : MonoBehaviour
             rotationOnTransformMismatch = kartBodyTransform.localEulerAngles.y;
             if (rotationOnTransformMismatch < 180)
             {
-                rotationOnTransformMismatch -= 400 * Time.deltaTime;
+                rotationOnTransformMismatch -= 200 * Time.deltaTime;
+                yRotation = -30;
             }
             if (rotationOnTransformMismatch > 180)
             {
-                rotationOnTransformMismatch += 400 * Time.deltaTime;
+                rotationOnTransformMismatch += 200 * Time.deltaTime;
+                yRotation = 30;
             }
 
             if (rotationOnTransformMismatch < 5 && rotationOnTransformMismatch > -5)
             {
                 kartBodyTransform.localEulerAngles = new Vector3(0f, 0f, 0f);
+                yRotation = x * 15;
+                yRotation = Mathf.Clamp(yRotation, -30f, 30f);
             }
             Debug.Log("transforms dont match " + kartBodyTransform.localRotation.y + " " + rotationOnTransformMismatch);
             //kartBodyTransform.localRotation = Quaternion.Euler(0f, kartBodyTransform.localRotation.y, 0f);
@@ -727,6 +755,8 @@ public class KartContoller : MonoBehaviour
         if (kartBodyTransform.localEulerAngles.y < 5 && kartBodyTransform.localEulerAngles.y > -5)
         {
             kartBodyTransform.localEulerAngles = new Vector3(0f, 0f, 0f);
+            yRotation = x * 15;
+            yRotation = Mathf.Clamp(yRotation, -30f, 30f);
         }
     }
 }

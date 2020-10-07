@@ -38,7 +38,7 @@ public class CameraFollow : MonoBehaviour
 
         
         differenceInY = kartBaseY - carY;
-        transform.eulerAngles = new Vector3(kartBaseX - kartBaseX, kartBaseY, kartBaseZ - kartBaseZ);
+        transform.eulerAngles = new Vector3(0f, kartBaseY, 0f);
        /* if ((transform.eulerAngles.y - kartBaseY) <= 1 && (transform.eulerAngles.y - kartBaseY) >= -1)
         {
             transform.eulerAngles = new Vector3(kartBaseX, kartBaseY, kartBaseZ);
