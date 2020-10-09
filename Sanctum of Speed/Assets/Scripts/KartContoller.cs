@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum DrivingStates { GROUNDEDDRIVING, BEGINDRIFTING, DRIFTING, INTHEAIR }
+public enum DrivingStates { GROUNDEDDRIVING, BEGINDRIFTING, DRIFTING, INTHEAIR, BOOSTING }
 
 public class KartContoller : MonoBehaviour
 {
@@ -93,6 +93,8 @@ public class KartContoller : MonoBehaviour
     public float rotationOnTransformMismatch;
 
     public int boostStage = 0;
+
+    public bool stateIsBoosting = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -139,6 +141,10 @@ public class KartContoller : MonoBehaviour
             case DrivingStates.BEGINDRIFTING:
                 HandleBeginDrifting();
                 break;
+
+            case DrivingStates.BOOSTING:
+                HandleBoosting();
+                break;
         }
 
         if (x != 0)
@@ -152,7 +158,7 @@ public class KartContoller : MonoBehaviour
         frontLeftWheelTransform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
         frontRightWheelTransform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
 
-        if (currentSpeed > topSpeed)
+        if (currentSpeed > topSpeed && stateIsBoosting == false)
         {
             currentSpeed = topSpeed;
         }
@@ -493,7 +499,7 @@ public class KartContoller : MonoBehaviour
 
         if (Input.GetAxis("Jump") != 0)
         {
-            kartClampWhenDrifting += xWhenJumping / 2;
+            kartClampWhenDrifting += xWhenJumping;
             kartClampWhenDrifting = Mathf.Clamp(kartClampWhenDrifting, -30, 30);
 
             kartBodyTransform.localRotation = Quaternion.Euler(0f, kartClampWhenDrifting, 0f);
@@ -563,18 +569,18 @@ public class KartContoller : MonoBehaviour
 
         if (xWhenJumping > .2f)
         {
-            kartClampWhenDrifting += 1 * .4f;
+            kartClampWhenDrifting += 1 * 1f;
         }
         if (xWhenJumping < -.2f)
         {
-            kartClampWhenDrifting -= 1 * .4f;
+            kartClampWhenDrifting -= 1 * 1f;
         }
         //kartClampWhenDrifting += 1 * xWhenJumping / 2;
         kartClampWhenDrifting = Mathf.Clamp(kartClampWhenDrifting, -30, 30);
 
         kartBodyTransform.localRotation = Quaternion.Euler(0f, kartClampWhenDrifting, 0f);
         //Debug.Log(kartClampWhenDrifting);
-        if (justJumped && isGrounded && pressingJump && Mathf.Abs(kartClampWhenDrifting) > 0 && currentSpeed > 30) //you can also do Mathf.Abs(kartClampWhenDrifting) > 0 instead of x 
+        if (justJumped && isGrounded && pressingJump && Mathf.Abs(xWhenJumping) > 0 && currentSpeed > 30) //you can also do Mathf.Abs(kartClampWhenDrifting) > 0 instead of x 
         {
             timerT = 0;
             state = DrivingStates.DRIFTING;
@@ -632,10 +638,10 @@ public class KartContoller : MonoBehaviour
 
 
 
-        Physics.Raycast(frontRightTransform.position, -transform.up, out hit2, .1f, mask);
-        Physics.Raycast(rearLeftTransform.position, -transform.up, out hit3, .100f, mask);
-        Physics.Raycast(rearRightTransform.position, -transform.up, out hit4, .100f, mask);
-        Physics.Raycast(frontLeftTransform.position, -transform.up, out hit, .100f, mask);
+        Physics.Raycast(frontRightTransform.position, -transform.up, out hit2, .4f, mask);
+        Physics.Raycast(rearLeftTransform.position, -transform.up, out hit3, .400f, mask);
+        Physics.Raycast(rearRightTransform.position, -transform.up, out hit4, .400f, mask);
+        Physics.Raycast(frontLeftTransform.position, -transform.up, out hit, .400f, mask);
 
 
 
@@ -657,7 +663,12 @@ public class KartContoller : MonoBehaviour
         //newUp.y = kartBaseY;
         newUp.z = hit.normal.z + hit2.normal.z + hit3.normal.z + hit4.normal.z;
         //newUp.z = kartBaseZ;
-        transform.localRotation = Quaternion.FromToRotation(transform.up, newUp) * transform.rotation;
+        if (Mathf.Abs(newUp.z) < .9f && Mathf.Abs(newUp.x) < .9f)
+        {
+            transform.localRotation = Quaternion.FromToRotation(transform.up, newUp) * transform.rotation;
+        }
+        //Debug.Log(newUp);
+        
 
         //transform.rotation = Quaternion.FromToRotation(transform.up, newAllignment) * transform.rotation;
 
@@ -724,6 +735,7 @@ public class KartContoller : MonoBehaviour
     
     public void RotateBodyBack()
     {
+
         if (kartBodyTransform.localEulerAngles != new Vector3(0f, 0f, 0f))
         {
 
@@ -745,7 +757,7 @@ public class KartContoller : MonoBehaviour
                 yRotation = x * 15;
                 yRotation = Mathf.Clamp(yRotation, -30f, 30f);
             }
-            Debug.Log("transforms dont match " + kartBodyTransform.localRotation.y + " " + rotationOnTransformMismatch);
+            //Debug.Log("transforms dont match " + kartBodyTransform.localRotation.y + " " + rotationOnTransformMismatch);
             //kartBodyTransform.localRotation = Quaternion.Euler(0f, kartBodyTransform.localRotation.y, 0f);
 
             kartBodyTransform.localEulerAngles = new Vector3(0f, rotationOnTransformMismatch, 0f);
@@ -758,5 +770,80 @@ public class KartContoller : MonoBehaviour
             yRotation = x * 15;
             yRotation = Mathf.Clamp(yRotation, -30f, 30f);
         }
+    }
+
+
+    public void HandleBoosting()
+    {
+        //transform.localRotation = Quaternion.FromToRotation(transform.up, new Vector3(transform.up.x, transform.up.y + 30, transform.up.z)) * transform.rotation;
+        if (isGrounded && velocity.y < 0)
+        {
+            velocity.y = -3f;
+        }
+        if (justJumped == false)
+        {
+
+            velocity.y = Mathf.Sqrt(jumpHeight * -30 * gravity);
+        }
+
+        if (!isGrounded)
+        {
+
+            justJumped = true;
+        }
+        //isGrounded = false;
+        stateIsBoosting = true;
+        
+        currentSpeed = 100f;
+        timerT = 0;
+        if (topSpeed > topSpeedMinimum && timeBoostingTimer > timeBoosting)
+        {
+            topSpeed -= 20 * Time.deltaTime;
+        }
+
+        bool justPressedJump = false;
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+
+        xWhenJumping = Input.GetAxisRaw("Horizontal");
+        if (Input.GetAxis("Jump") != 0 && justPressedJump == false && didPressDrift == false) //this is confusing i know the did press jump is used to see if the player is jumping from the drift button after being on the ground the just pressed jump checks to see if player pressed jump
+        {
+
+
+            justPressedJump = true;
+        }
+
+        if (Input.GetAxis("Jump") != 0)
+        {
+            kartClampWhenDrifting += xWhenJumping;
+            kartClampWhenDrifting = Mathf.Clamp(kartClampWhenDrifting, -30, 30);
+
+            kartBodyTransform.localRotation = Quaternion.Euler(0f, kartClampWhenDrifting, 0f);
+        }
+
+        if (Input.GetAxis("Jump") == 0)
+        {
+            RotateBodyBack();
+        }
+        if (isGrounded && Input.GetAxis("Jump") != 0 && Mathf.Abs(kartClampWhenDrifting) > 0 && currentSpeed > 30 && kartBodyTransform.localRotation.y != 0 && justJumped == true)
+        {
+            stateIsBoosting = false;
+            state = DrivingStates.DRIFTING;
+
+        }
+
+
+        if (isGrounded && Input.GetAxis("Jump") == 0 || didPressDrift == true && isGrounded && justJumped == true)
+        {
+            stateIsBoosting = false;
+            //kartBody.Rotate(Vector3.up.x, kartClampWhenDrifting, Vector3.up.z);
+            state = DrivingStates.GROUNDEDDRIVING;
+        }
+
+        kart.Move(forwardDirectionOnJump * currentSpeed * Time.deltaTime);
+
+        velocity.y += gravity * Time.deltaTime; //gravity move on y axis
+        kart.Move(velocity * Time.deltaTime); //timedeltatime^2 thats why its twice
+
+
     }
 }
